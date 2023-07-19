@@ -11,14 +11,20 @@
     <header>
         <p class="centered-title" class="container" >Mi crypto cartera</p>
     </header>
+    
     <section class="container">
+
         <nav>
-            <div></div>
-            <a href="#" id="btnNuevo" role="button">Nuevo</a>
+            <div class="button-container">
+                <button class="header-button">Inicio</button>
+                <button class="header-button">Compra</button>
+                <button class="header-button">Status</button>
+            </div>
+            <p class="centered-title">Mi crypto cartera</p>
         </nav>
-        
+
         <h1>Estado de la inversión</h1>
-        <table>
+        <table id="table_movements">
             <thead>
                 <tr>
                     <th>Fecha</th>
@@ -34,6 +40,34 @@
             </tbody>   
 
         </table>
+
+        <article id="form_container" class="invisible">
+            <form>
+                <div class="left-items">
+                    <div>
+                        <input type="date" name="date" id="date" placeholder="Fecha">
+                    </div>
+                    <div>
+                        <input type="text" name="abstract" id="abstract" placeholder="Concepto">
+                    </div>
+                </div>
+                <div class="right-items">
+                    <div>
+                        <input type="number" name="amount" id="amount" step="0.01" placeholder="Cantidad (negativo es gasto)">
+                    </div>
+                    <div>
+                        <select name="currency" id="currency" placeholder="Moneda">
+                            <option value="EUR">Euros</option>
+                            <option value="USD">Dólares americanos</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <input type="submit" name="submit" id="submit" value="Aceptar" role="button">
+                </div>
+            </form>
+        </article>
+        
 
     </section>
     <footer>
