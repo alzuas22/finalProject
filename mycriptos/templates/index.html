@@ -35,7 +35,7 @@
                     <th>Cantidad_to</th>
                 </tr>
             </thead>
-            <tbody id="table_movements">
+            <tbody id="table_movements_body">
             
             </tbody>   
 
@@ -44,27 +44,52 @@
         <article id="form_container" class="invisible">
             <form>
                 <div class="left-items">
+                                    
                     <div>
-                        <input type="date" name="date" id="date" placeholder="Fecha">
+                        <label for="from">From:</label>
+                        <select name="moneda_from" id="moneda_from" placeholder="Moneda_from">
+                            <option value="EUR">Euro</option>
+                            <option value="BTC">Bitcoin</option>
+                            <option value="ETH">Ethereum</option>
+                            <option value="USDT">Tether USDt</option>
+                            <option value="BNB">Binance Coin</option>
+                            <option value="XRP">XRP</option>
+                            <option value="ADA">Cardano</option>
+                            <option value="SOL">Solana</option>
+                            <option value="DOT">Polkadot</option>
+                            <option value="MATIC">Polygon</option>
+                        </select>
                     </div>
                     <div>
-                        <input type="text" name="abstract" id="abstract" placeholder="Concepto">
+                        <input type="number" name="cantidad_from" id="cantidad_from" step="0.01" placeholder="Cantidad a invertir">
+                    </div>
+                    <div>
+                        <input type="submit" name="submitConversion" id="submitConversion" value="Calcular" role="button">
                     </div>
                 </div>
                 <div class="right-items">
+                    
                     <div>
-                        <input type="number" name="amount" id="amount" step="0.01" placeholder="Cantidad (negativo es gasto)">
-                    </div>
-                    <div>
-                        <select name="currency" id="currency" placeholder="Moneda">
-                            <option value="EUR">Euros</option>
-                            <option value="USD">Dólares americanos</option>
+                        <label for="to">To:</label>
+                        <select name="moneda_to" id="moneda_to" placeholder="Moneda_to">
+                            <option value="EUR">Euro</option>
+                            <option value="BTC">Bitcoin</option>
+                            <option value="ETH">Ethereum</option>
+                            <option value="USDT">Tether USDt</option>
+                            <option value="BNB">Binance Coin</option>
+                            <option value="XRP">XRP</option>
+                            <option value="ADA">Cardano</option>
+                            <option value="SOL">Solana</option>
+                            <option value="DOT">Polkadot</option>
+                            <option value="MATIC">Polygon</option>
                         </select>
                     </div>
+                    <div id="calculated_amount"></div> <!-- Elemento para mostrar la salida del cálculo -->
+                    <div>
+                        <input type="submit" name="submit" id="submit" value="Aceptar" role="button">
+                    </div>
                 </div>
-                <div>
-                    <input type="submit" name="submit" id="submit" value="Aceptar" role="button">
-                </div>
+                
             </form>
         </article>
         

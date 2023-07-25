@@ -13,6 +13,7 @@ header, footer {
     background-color: #C0C0C0;
 }
 
+
 header p, footer p {
     color: black;
     font-weight: bold;
@@ -57,13 +58,77 @@ header p, footer p {
     flex-direction: column;
 }
 
-.left-items,
-.right-items {
+label {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  
+  /* Estilo para el contenedor principal de los formularios */
+#form_container {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
 }
 
-.left-items div,
-.right-items div {
-    /* Añade aquí cualquier estilo adicional para los elementos individuales */
+/* Estilo para la sección que contiene los formularios (izquierda y derecha) */
+#form_container .container {
+    display:inline-flex ;
+    justify-content: space-between; /* Espacio entre los elementos para ocupar el ancho disponible */
+    flex-wrap: wrap; /* Asegurar que los elementos de la derecha se envuelvan en una nueva línea si el espacio es insuficiente */
+    align-items: flex-end;
+}
+
+/* Estilo para la columna de la izquierda */
+.left-items {
+    display: inline-flex;
+    flex-direction: column; /* Mostrar los elementos en una columna */
+    align-items: flex-start; /* Alinear los elementos al inicio de la columna */
+}
+
+/* Estilo para la columna de la derecha */
+.right-items {
+    display: inline-flex;
+    flex-direction: column; /* Mostrar los elementos en una columna */
+    align-items: flex-end;
+    margin-top: 10px;
+}
+
+/* Estilo para los formularios */
+#form_container form {
+    display: inline-flex;
+    flex-wrap: wrap; /* Asegurar que los elementos del formulario se envuelvan en una nueva línea si el espacio es insuficiente */
+    justify-content: center; /* Centrar el formulario horizontalmente */
+}
+
+#form_container form > div {
+    margin: 25px; /* Espacio entre los elementos del formulario */
+}
+
+
+
+/* Estilo para los botones dentro del formulario */
+#form_container form input[type="submit"] {
+    padding: 5px 10px;
+    background-color: #C0C0C0; /* Puedes cambiar el color a tu gusto */
+    color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+/* Estilo para los campos del formulario */
+#form_container form input,
+#form_container form select {
+    width: 200px; /* Ancho fijo para los campos del formulario */
+}
+/* Estilo para mostrar la salida del cálculo */
+#calculated_amount {
+    margin-top: 20px; /* Espacio entre el formulario y la salida del cálculo */
+    font-weight: bold;
 }

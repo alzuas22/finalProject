@@ -1,7 +1,104 @@
 from datetime import datetime
+from mycriptos import app
 import sqlite3
+from dotenv import load_dotenv
+import requests, os
 
 CURRENCIES = ("EUR", "BTC", "ETH", "USDT", "BNB", "XRP", "ADA", "SOL", "DOT", "MATIC")
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
+
+# Obtener la API KEY de CoinAPI.io desde las variables de entorno
+API_KEY = os.getenv("API_KEY")
+
+def obtener_tasa_de_cambio(moneda_from, moneda_to):
+    try:
+        # Construye la URL de la API utilizando los parámetros proporcionados y tu API KEY
+        url = f"https://rest.coinapi.io/v1/exchangerate/{moneda_from}/{moneda_to}?apikey={API_KEY}"
+
+        # Realiza una solicitud GET a CoinAPI.io con tu API KEY
+        response = requests.get(url)
+
+        # Verifica si la solicitud fue exitosa (código de estado 200)
+        if response.status_code == 200:
+            # Analiza los datos JSON de la respuesta
+            data = response.json()
+
+            # Extrae el valor de la tasa de cambio de los datos de la respuesta
+            rate = data.get("rate")
+
+            # Devuelve la tasa de cambio
+            return rate
+        else:
+            # Si la solicitud falló, muestra un mensaje de error
+            print(f"Error al obtener la tasa de cambio ({response.status_code}): {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        # Si ocurrió un error durante la solicitud, muestra un mensaje de error
+        print(f"Error en la solicitud: {e}")
+        return None
+
+
+def verificar_saldo_suficiente(moneda_from, moneda_to, cantidad_moneda_to):
+    try:
+        # Obtener el saldo total de moneda_from desde la base de datos
+        with sqlite3.connect(app.config.get("PATH_SQLITE")) as conn:
+            cursor = conn.cursor()
+
+            # Cantidad total de moneda_from
+            cursor.execute("SELECT SUM(cantidad_to) FROM movements WHERE moneda_to = ?", (moneda_from,))
+            cantidad_mimoneda = cursor.fetchone()[0]  # Obtenemos el resultado de la suma
+
+            # Obtener la tasa de cambio entre moneda_from y EUR
+            tasa_1 = obtener_tasa_de_cambio(moneda_from, "EUR")
+
+            # Obtener la tasa de cambio entre moneda_to y EUR
+            tasa_2 = obtener_tasa_de_cambio(moneda_to, "EUR")
+
+            # Verificar si hay suficiente saldo
+            if cantidad_mimoneda * tasa_1 >= cantidad_moneda_to * tasa_2:
+                return True
+            else:
+                return False
+
+    except sqlite3.Error as e:
+        print(f"Error en la consulta a la base de datos: {e}")
+    return False
+
+
+
+def obtener_monedas_disponibles(moneda_from, cantidad_moneda_to):
+    try:
+        # Lista de monedas disponibles que cumplen la condición
+        monedas_disponibles = []
+
+        # Obtener el saldo total de cada moneda_from y sus tasas de cambio con EUR
+        with sqlite3.connect(app.config.get("PATH_SQLITE")) as conn:
+            cursor = conn.cursor()
+             # Cantidad total de moneda_from
+            cursor.execute("SELECT SUM(cantidad_to) FROM movements WHERE moneda_to = ?", (moneda_from,))
+            cantidad_mimoneda = cursor.fetchone()[0]  # Obtenemos el resultado de la suma
+
+            # Obtener la tasa de cambio entre moneda_from y EUR
+            tasa_1 = obtener_tasa_de_cambio(moneda_from, "EUR")
+            
+            for moneda in CURRENCIES:
+                # Obtener la tasa de cambio entre moneda_to y EUR
+                tasa_2 = obtener_tasa_de_cambio(moneda, "EUR")
+
+                # Verificar si cumple la condición y agregar a la lista de monedas disponibles
+                if cantidad_mimoneda * tasa_1 >= cantidad_moneda_to * tasa_2:
+                    monedas_disponibles.append(moneda_from)
+
+        return monedas_disponibles
+
+    except sqlite3.Error as e:
+        print(f"Error en la consulta a la base de datos: {e}")
+        return []
+
+
+
 
 
 
