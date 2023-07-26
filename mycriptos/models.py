@@ -3,6 +3,7 @@ from mycriptos import app
 import sqlite3
 from dotenv import load_dotenv
 import requests, os
+from flask import jsonify
 
 CURRENCIES = ("EUR", "BTC", "ETH", "USDT", "BNB", "XRP", "ADA", "SOL", "DOT", "MATIC")
 
@@ -14,7 +15,7 @@ API_KEY = os.getenv("API_KEY")
 
 def obtener_tasa_de_cambio(moneda_from, moneda_to):
     try:
-        # Construye la URL de la API utilizando los parámetros proporcionados y tu API KEY
+        # URL de la API utilizando los parámetros proporcionados y API KEY
         url = f"https://rest.coinapi.io/v1/exchangerate/{moneda_from}/{moneda_to}?apikey={API_KEY}"
 
         # Realiza una solicitud GET a CoinAPI.io con tu API KEY
@@ -31,41 +32,33 @@ def obtener_tasa_de_cambio(moneda_from, moneda_to):
             # Devuelve la tasa de cambio
             return rate
         else:
-            # Si la solicitud falló, muestra un mensaje de error
-            print(f"Error al obtener la tasa de cambio ({response.status_code}): {response.text}")
-            return None
+            raise ValueError(f"Error al obtener la tasa de cambio ({response.status_code}): {response.text}")
+
     except requests.exceptions.RequestException as e:
         # Si ocurrió un error durante la solicitud, muestra un mensaje de error
-        print(f"Error en la solicitud: {e}")
-        return None
+        raise ValueError(f"Error en la solicitud: {e}")
 
+def verificar_saldo_suficiente(moneda_buscada):
+    try:        
+        query1 = """
+        SELECT SUM(cantidad_to) FROM movements WHERE moneda_to = ?;
+        """
+        query2 = """
+        SELECT SUM(cantidad_from) FROM movements WHERE moneda_from = ?;
+        """
 
-def verificar_saldo_suficiente(moneda_from, moneda_to, cantidad_moneda_to):
-    try:
-        # Obtener el saldo total de moneda_from desde la base de datos
-        with sqlite3.connect(app.config.get("PATH_SQLITE")) as conn:
-            cursor = conn.cursor()
-
-            # Cantidad total de moneda_from
-            cursor.execute("SELECT SUM(cantidad_to) FROM movements WHERE moneda_to = ?", (moneda_from,))
-            cantidad_mimoneda = cursor.fetchone()[0]  # Obtenemos el resultado de la suma
-
-            # Obtener la tasa de cambio entre moneda_from y EUR
-            tasa_1 = obtener_tasa_de_cambio(moneda_from, "EUR")
-
-            # Obtener la tasa de cambio entre moneda_to y EUR
-            tasa_2 = obtener_tasa_de_cambio(moneda_to, "EUR")
-
-            # Verificar si hay suficiente saldo
-            if cantidad_mimoneda * tasa_1 >= cantidad_moneda_to * tasa_2:
-                return True
-            else:
-                return False
-
+        conn = sqlite3.connect(app.config.get("PATH_SQLITE"))
+        cur = conn.cursor()
+        cur.execute(query1, (moneda_buscada,))
+        suma_cantidades_to = cur.fetchone()[0] 
+        cur.execute(query2, (moneda_buscada,))
+        suma_cantidades_from = cur.fetchone()[0] or 0.0
+        conn.close()
+        saldo = suma_cantidades_to - suma_cantidades_from
+        return saldo   
+        
     except sqlite3.Error as e:
-        print(f"Error en la consulta a la base de datos: {e}")
-    return False
-
+        raise ValueError(f"Error en la consulta a la base de datos: {e}")
 
 
 def obtener_monedas_disponibles(moneda_from, cantidad_moneda_to):
@@ -119,8 +112,8 @@ class Movement:
     @cantidad_from.setter
     def cantidad_from(self, value):
         self._cantidad_from = float(value)
-        if self._cantidad_from == 0:
-            raise ValueError("Amount must be positive or negative")
+        if self._cantidad_from <= 0:
+            raise ValueError("Amount must be positive ")
         
     @property
     def moneda_from(self):
@@ -179,14 +172,14 @@ class MovementDAOsqlite:
 
         query = """
         INSERT INTO movements
-               (moneda_from, cantidad_from, moneda_to, cantidad_to)
-        VALUES (?, ?, ?, ?)
+               (date, time, moneda_from, cantidad_from, moneda_to, cantidad_to)
+        VALUES (?, ?, ?, ?, ?, ?);
         """
 
         conn = sqlite3.connect(self.path)
         cur = conn.cursor()
-        cur.execute(query, (movement.moneda_from, movement.cantidad_from,
-                            movement.moneda_to, movement.cantidad_to))
+        cur.execute(query, (movement.date, movement.time, movement.moneda_from, 
+                            movement.cantidad_from, movement.moneda_to, movement.cantidad_to))
         conn.commit()
         conn.close()
 

@@ -4,26 +4,30 @@ function appendCell(row, data) {
         the_cell.innerHTML = data
 }
 
+function clearForm() {
+    // Limpiar el contenido del formulario después de una inserción exitosa
+    document.querySelector("#moneda_from").value = "";
+    document.querySelector("#moneda_to").value = "";
+    document.querySelector("#cantidad_from").value = "";
+    document.querySelector("#calculated_amount").value = "";
+}
+
 function process_insert(data) {
     if (data.status == "success") {
-        fetch("/api/v1/movimientos",)
+        // Llama a la función que obtiene todos los movimientos y actualiza la tabla
+        fetch("/api/v1/movimientos")
             .then(convert_to_json)
             .then(all_movements)
+            .then(clearForm)
             .catch(process_error)
     } else {
         alert("Error en insercion")
     }
-      
 }
 
 function saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to) {
-    
-    
-    let now = new Date(); // obtener fecha y hora actual
 
     let data = {
-        date: now.toISOString().slice(0,10), // formato YYYY-MM-DD
-        time: now.toTimeString().slice(0,8),  // formato HH:MM:SS
         moneda_from: moneda_from,
         cantidad_from: cantidad_from, 
         moneda_to: moneda_to,
@@ -38,7 +42,7 @@ function saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to) {
         }
     }
 
-    fetch("/api/v1/insert", options)
+    fetch("/api/v1/movimiento", options)
         .then(convert_to_json)
         .then(process_insert)
         .catch(process_error)
@@ -48,34 +52,21 @@ function saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to) {
 function validateMovement(event) {
     event.preventDefault()
 
- /* let _date = document.querySelector("#date").value
-    let today = new Date().toISOString().slice(0, 10)
-    if (_date > today) {
-        alert("La fecha debe ser hoy o menor")
-        return
-    }
-
-    let abstract = document.querySelector("#abstract").value
-    if (abstract.length < 5) {
-        alert("El concepto debe tener al menos 5 caracteres")
-        return
-    }*/
-
-    let cantidad_from = document.querySelector("#cantidad_from").value
-    if (cantidad_from == 0) {
-        alert("La cantidad debe ser positiva ")
-        return
-    }
-
     let moneda_from = document.querySelector("#moneda_from").value
+    let moneda_to = document.querySelector("#moneda_to").value
+    let cantidad_from = document.querySelector("#cantidad_from").value
+    let cantidad_to = document.querySelector("#calculated_amount").value
 
+    if (cantidad_from <= 0) {
+        alert("La cantidad debe ser positiva")
+        return
+    }
     saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to)
 }
 
 function convert_to_json(response) {
     return response.json()
 }
-
 
 function all_movements(data) {
     if (data.status = "success") {
@@ -101,9 +92,30 @@ function all_movements(data) {
     
 }
 
-
 function process_error(error) {
     alert("Se ha producido el siguiente error: " + error)
+}
+
+function calculateConversion(event) {
+    event.preventDefault()
+    let moneda_from = document.querySelector("#moneda_from").value
+    let moneda_to = document.querySelector("#moneda_to").value
+    let cantidad_from = document.querySelector("#cantidad_from").value
+    // Realizar una solicitud a la API para obtener la tasa de cambio
+    fetch(`/api/v1/tasa/${moneda_from}/${moneda_to}/${cantidad_from}`)
+        .then(convert_to_json)
+        .then(data => {
+            if (data.status == "success") {
+                const rate = data.rate;
+                const cantidad_to = (parseFloat(cantidad_from) * rate).toFixed(4); // Redondear a 4 decimales
+                // Mostrar el resultado en el elemento "calculated_amount"
+                const calculatedAmountElement = document.getElementById("calculated_amount");
+                calculatedAmountElement.innerHTML = ` ${cantidad_to} `;
+            } else {
+                alert("Error al obtener la tasa de cambio");
+            }
+        })
+        .catch(process_error);        
 }
 
 window.onload = function() {
@@ -112,6 +124,12 @@ window.onload = function() {
         .then(all_movements)
         .catch(process_error)
 
-    // Asociar clic a enviar formulario al servidor (alta de movimiento)
+    // Asociar click a enviar formulario al servidor (alta de movimiento)
     document.querySelector("#submit").addEventListener("click", validateMovement) 
+
+    // Agregar evento al botón "submitConversion"
+    document.querySelector("#submitConversion").addEventListener("click", calculateConversion);
+    
+    
+
 }

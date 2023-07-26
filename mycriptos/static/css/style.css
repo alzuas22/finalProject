@@ -119,6 +119,7 @@ label {
     border: 2px solid black;
     border-radius: 5px;
     cursor: pointer;
+    margin-top: 15px;
 }
 
 
@@ -130,5 +131,8 @@ label {
 /* Estilo para mostrar la salida del cálculo */
 #calculated_amount {
     margin-top: 20px; /* Espacio entre el formulario y la salida del cálculo */
+    border: 1px solid black;
     font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
 }
