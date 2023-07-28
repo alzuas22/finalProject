@@ -91,7 +91,41 @@ def obtener_monedas_disponibles(moneda_from, cantidad_moneda_to):
         return []
 
 
+def get_unique_currencies_to(movements):
+    unique_currencies_to = []
 
+    for movement in movements:
+        if movement["moneda_to"] not in unique_currencies_to:
+            unique_currencies_to.append(movement["moneda_to"])
+
+    return unique_currencies_to
+
+def get_unique_currencies_from(movements):
+    unique_currencies_from = []
+
+    for movement in movements:
+        if movement["moneda_from"] not in unique_currencies_from:
+            unique_currencies_from.append(movement["moneda_from"])
+
+    return unique_currencies_from
+
+def get_sum_by_currency_to(movements, unique_currencies):
+    currency_totals_to = []
+
+    for currency in unique_currencies:
+        total = sum(movement["cantidad_to"] for movement in movements if movement["moneda_to"] == currency)
+        currency_totals_to.append(total)
+
+    return currency_totals_to
+
+def get_sum_by_currency_from(movements, unique_currencies):
+    currency_totals_from = []
+
+    for currency in unique_currencies:
+        total = sum(movement["cantidad_from"] for movement in movements if movement["moneda_from"] == currency)
+        currency_totals_from.append(total)
+
+    return currency_totals_from
 
 
 
@@ -113,7 +147,7 @@ class Movement:
     def cantidad_from(self, value):
         self._cantidad_from = float(value)
         if self._cantidad_from <= 0:
-            raise ValueError("Amount must be positive ")
+            return jsonify({"error": "Amount must be positive"}), 400
         
     @property
     def moneda_from(self):
@@ -123,7 +157,7 @@ class Movement:
     def moneda_from(self, value):
         self._moneda_from = value
         if self._moneda_from not in CURRENCIES:
-            raise ValueError(f"currency must be in {CURRENCIES}")
+            return jsonify({"error": f"currency must be in {CURRENCIES}"}), 400
         
     @property
     def moneda_to(self):

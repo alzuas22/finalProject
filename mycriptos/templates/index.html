@@ -16,14 +16,17 @@
 
         <nav>
             <div class="button-container">
-                <button class="header-button">Inicio</button>
-                <button class="header-button">Compra</button>
-                <button class="header-button">Status</button>
+                <button class="header-button" id="statusButton">Status</button>
             </div>
             <p class="centered-title">Mi crypto cartera</p>
         </nav>
 
-        <h1>Estado de la inversión</h1>
+        <section id="statusSection" class="invisible">
+            <div id="cryptoList">
+            </div>
+            <div id="portfolioValue">
+            </div>
+        </section>
         <table id="table_movements">
             <thead>
                 <tr>
@@ -41,7 +44,7 @@
 
         </table>
 
-        <article id="form_container" class="invisible">
+        <article id="form_container">
             <form>
                 <div class="left-items">
                                     
@@ -66,6 +69,7 @@
                     <div>
                         <input type="submit" name="submitConversion" id="submitConversion" value="Calcular" role="button">
                     </div>
+                    <div id="mensajeError" style="color: red;"></div>
                 </div>
                 <div class="right-items">
                     
@@ -92,6 +96,7 @@
                     <div>
                         <input type="submit" name="submit" id="submit" value="Aceptar" role="button">
                     </div>
+                    
                 </div>
                 
             </form>

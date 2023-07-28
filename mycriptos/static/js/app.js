@@ -21,7 +21,12 @@ function process_insert(data) {
             .then(clearForm)
             .catch(process_error)
     } else {
-        alert("Error en insercion")
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Error en la inserción';
+
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar el mensaje de error después de 5 segundos
     }
 }
 
@@ -50,15 +55,38 @@ function saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to) {
 }
 
 function validateMovement(event) {
-    event.preventDefault()
-
+    event.preventDefault()  
+    
     let moneda_from = document.querySelector("#moneda_from").value
     let moneda_to = document.querySelector("#moneda_to").value
     let cantidad_from = document.querySelector("#cantidad_from").value
     let cantidad_to = document.querySelector("#calculated_amount").value
 
-    if (cantidad_from <= 0) {
-        alert("La cantidad debe ser positiva")
+    if (moneda_from === moneda_to) {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Las monedas no pueden ser iguales';
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
+    
+    if (cantidad_from <= 0 || cantidad_from === '') {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'La cantidad debe ser positiva';
+        
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
+    if (cantidad_to === '' || cantidad_to === '\n                    ') {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Debe de haber conversión';
+
+        setTimeout(function() {
+          mensajeError.textContent = '';
+        }, 5000); // Borrar
         return
     }
     saveMovement(moneda_from, cantidad_from, moneda_to, cantidad_to)
@@ -87,20 +115,64 @@ function all_movements(data) {
             appendCell(the_row, regs[i].cantidad_to)
         }
     } else {
-        alert ("Se ha producido el error " + data.data)
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Se ha producido el error ' + data.data;
+
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
     }
     
 }
 
 function process_error(error) {
-    alert("Se ha producido el siguiente error: " + error)
+    const mensajeError = document.querySelector('#mensajeError');
+    mensajeError.textContent = 'Se ha producido el siguiente error: ' + error;
+
+    setTimeout(function() {
+     mensajeError.textContent = '';
+    }, 5000); // Borrar el mensaje
+}
+
+// resetear el valor de 'calculated_amount'
+function resetCalculatedAmount() {
+    const calculatedAmountElement = document.getElementById("calculated_amount");
+    calculatedAmountElement.innerHTML = '';
 }
 
 function calculateConversion(event) {
     event.preventDefault()
+    
     let moneda_from = document.querySelector("#moneda_from").value
     let moneda_to = document.querySelector("#moneda_to").value
     let cantidad_from = document.querySelector("#cantidad_from").value
+
+    if (moneda_from === moneda_to) {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Las monedas no pueden ser iguales';
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
+    if (moneda_from === '') {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Selecciona moneda_from';
+        
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
+    if (moneda_to === '' ) {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Selecciona moneda_to';
+
+        setTimeout(function() {
+          mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
     // Realizar una solicitud a la API para obtener la tasa de cambio
     fetch(`/api/v1/tasa/${moneda_from}/${moneda_to}/${cantidad_from}`)
         .then(convert_to_json)
@@ -112,10 +184,71 @@ function calculateConversion(event) {
                 const calculatedAmountElement = document.getElementById("calculated_amount");
                 calculatedAmountElement.innerHTML = ` ${cantidad_to} `;
             } else {
-                alert("Error al obtener la tasa de cambio");
+                const mensajeError = document.querySelector('#mensajeError');
+                mensajeError.innerHTML = 'Error al obtener la tasa de <br> cambio: ' + data.data;
+
+                setTimeout(function() {
+                  mensajeError.innerHTML = '';
+                }, 5000); // Borrar el mensaje de error después de 5 segundos
             }
         })
         .catch(process_error);        
+}
+
+function getStatus() {
+    fetch("/api/v1/status")
+        .then(convert_to_json)
+        .then(data => {
+            if (data.status === "success") {
+                const statusSection = document.getElementById("statusSection");
+                const cryptoList = document.getElementById("cryptoList");
+                const portfolioValue = document.getElementById("portfolioValue");
+
+
+
+                // Calcular el resultado (suma de valor actual y precio de compra)
+                const resultadohtml = (data.data.actual_value + data.data.price).toFixed(2);
+
+                // Mostrar el estado de la inversión
+                portfolioValue.innerHTML = `Valor actual: ${data.data.actual_value.toFixed(2)} €<br>
+                Precio de compra: ${data.data.price.toFixed(2)} €<br>
+                Resultado: ${resultadohtml} €`;
+
+
+                // Mostrar la lista de cryptomonedas con su balance y value
+                cryptoList.innerHTML = "<h3>Estado de la inversión:</h3>";
+                const table = document.createElement("table");
+                table.innerHTML = `
+                    <tr>
+                        <th>Cantidad en tu wallet</th>
+                        <th>Crypto Moneda</th>
+                        <th>Valor en €</th>
+                    </tr>
+                `;
+                for (const [moneda, info] of Object.entries(data.data.wallet)) {
+                    if (moneda !== "EUR") {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${info.balance.toFixed(2)}</td>
+                            <td>${moneda}</td>
+                            <td>${info.value.toFixed(2)}</td>
+                        `;
+                        table.appendChild(row);
+                    }
+                }
+                cryptoList.appendChild(table);
+
+                statusSection.classList.remove("invisible");
+            } else {
+                const mensajeError = document.querySelector('#mensajeError');
+                mensajeError.textContent = 'Error al obtener el estado de la inversión';
+
+                setTimeout(function() {
+                  mensajeError.textContent = '';
+                }, 5000); // Borrar el mensaje de error después de 5 segundos
+            }
+        })
+        .catch(process_error);
 }
 
 window.onload = function() {
@@ -130,6 +263,11 @@ window.onload = function() {
     // Agregar evento al botón "submitConversion"
     document.querySelector("#submitConversion").addEventListener("click", calculateConversion);
     
-    
+    // Agregar evento al botón "statusButton" para obtener el estado de la inversión
+    document.querySelector("#statusButton").addEventListener("click", getStatus); 
 
+    // Agregar controlador de evento 'change' a los elementos de selección de moneda
+    document.querySelector("#moneda_from").addEventListener('change', resetCalculatedAmount);
+    document.querySelector("#moneda_to").addEventListener('change', resetCalculatedAmount);
+    
 }
