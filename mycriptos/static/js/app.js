@@ -147,6 +147,14 @@ function calculateConversion(event) {
     let moneda_to = document.querySelector("#moneda_to").value
     let cantidad_from = document.querySelector("#cantidad_from").value
 
+    if (cantidad_from ==='') {
+        const mensajeError = document.querySelector('#mensajeError');
+        mensajeError.textContent = 'Especificar cantidad';
+        setTimeout(function() {
+         mensajeError.textContent = '';
+        }, 5000); // Borrar
+        return
+    }
     if (moneda_from === moneda_to) {
         const mensajeError = document.querySelector('#mensajeError');
         mensajeError.textContent = 'Las monedas no pueden ser iguales';
@@ -179,7 +187,7 @@ function calculateConversion(event) {
         .then(data => {
             if (data.status == "success") {
                 const rate = data.rate;
-                const cantidad_to = (parseFloat(cantidad_from) * rate).toFixed(4); // Redondear a 4 decimales
+                const cantidad_to = (parseFloat(cantidad_from) * rate).toFixed(8); // Redondear a 8 decimales
                 // Mostrar el resultado en el elemento "calculated_amount"
                 const calculatedAmountElement = document.getElementById("calculated_amount");
                 calculatedAmountElement.innerHTML = ` ${cantidad_to} `;
@@ -229,9 +237,9 @@ function getStatus() {
                     if (moneda !== "EUR") {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${info.balance.toFixed(2)}</td>
+                            <td>${info.balance.toFixed(8)}</td>
                             <td>${moneda}</td>
-                            <td>${info.value.toFixed(2)}</td>
+                            <td>${info.value.toFixed(8)}</td>
                         `;
                         table.appendChild(row);
                     }
@@ -269,5 +277,5 @@ window.onload = function() {
     // Agregar controlador de evento 'change' a los elementos de selección de moneda
     document.querySelector("#moneda_from").addEventListener('change', resetCalculatedAmount);
     document.querySelector("#moneda_to").addEventListener('change', resetCalculatedAmount);
-    
+    document.querySelector("#cantidad_from").addEventListener('change', resetCalculatedAmount);
 }

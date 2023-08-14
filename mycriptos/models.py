@@ -27,7 +27,7 @@ def obtener_tasa_de_cambio(moneda_from, moneda_to):
             data = response.json()
 
             # Extrae el valor de la tasa de cambio de los datos de la respuesta
-            rate = data.get("rate")
+            rate = round(data.get("rate"), 8)
 
             # Devuelve la tasa de cambio
             return rate
@@ -50,7 +50,7 @@ def verificar_saldo_suficiente(moneda_buscada):
         conn = sqlite3.connect(app.config.get("PATH_SQLITE"))
         cur = conn.cursor()
         cur.execute(query1, (moneda_buscada,))
-        suma_cantidades_to = cur.fetchone()[0] 
+        suma_cantidades_to = cur.fetchone()[0] or 0.0
         cur.execute(query2, (moneda_buscada,))
         suma_cantidades_from = cur.fetchone()[0] or 0.0
         conn.close()
